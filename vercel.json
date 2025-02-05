@@ -1,4 +1,4 @@
-
+{
 "builds": [{
 }],
 "src": "Blog/wsgi.py",
