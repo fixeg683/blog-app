@@ -1,87 +1,184 @@
 /* home/static/home/style.css */
 :root {
-    --primary-color: #2563eb; /* Modern Blue */
-    --secondary-color: #1e293b; /* Dark Slate */
-    --bg-color: #f8fafc; /* Light Gray Background */
-    --card-bg: #ffffff;
-    --text-main: #334155;
-    --text-light: #64748b;
-    --border-radius: 12px;
+    --primary: #4f46e5;       /* Indigo */
+    --primary-hover: #4338ca;
+    --bg-body: #f1f5f9;       /* Light Slate */
+    --bg-card: #ffffff;
+    --text-main: #1e293b;     /* Dark Slate */
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --radius: 12px;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: var(--bg-color);
+    background-color: var(--bg-body);
     color: var(--text-main);
+    font-family: 'Segoe UI', system-ui, sans-serif;
     margin: 0;
-    line-height: 1.6;
+    padding-top: 80px; /* Space for fixed navbar */
 }
 
 /* --- Navigation --- */
 nav {
-    background-color: var(--card-bg);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
     padding: 1rem 2rem;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-sizing: border-box;
 }
 
-nav a.brand {
+nav .brand {
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--primary-color);
+    color: var(--primary);
     text-decoration: none;
 }
 
-/* --- Layout --- */
+nav .nav-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    margin-left: 1.5rem;
+    font-weight: 500;
+}
+
+nav .nav-links a:hover {
+    color: var(--primary);
+}
+
+/* --- Layout Containers --- */
 .container {
-    max-width: 900px;
-    margin: 3rem auto;
+    max-width: 1100px;
+    margin: 0 auto;
     padding: 0 1.5rem;
 }
 
-/* --- Blog Cards --- */
-.post-card {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* 1. Auth & Form Layout (Centered Card) */
+.auth-container {
+    max-width: 450px;
+    margin: 3rem auto;
+    background: var(--bg-card);
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
 }
 
-.post-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+/* 2. Blog Grid Layout */
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
 }
 
-.post-title a {
-    color: var(--secondary-color);
+/* --- Components --- */
+
+/* Cards (Blog Posts) */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+    border: 1px solid var(--border);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.card-title a {
     text-decoration: none;
-    font-size: 1.75rem;
-    font-weight: 700;
+    color: var(--text-main);
 }
 
-.post-meta {
-    font-size: 0.875rem;
-    color: var(--text-light);
+.card-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
     margin-bottom: 1rem;
-    display: block;
 }
 
-/* --- Buttons --- */
+/* Forms */
+form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+form input, form textarea, form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+form input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Buttons */
 .btn {
     display: inline-block;
-    background-color: var(--primary-color);
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     text-decoration: none;
-    font-weight: 500;
-    margin-top: 1rem;
+    font-weight: 600;
+    text-align: center;
 }
 
 .btn:hover {
-    background-color: #1d4ed8;
+    background: var(--primary-hover);
+}
+
+.btn-danger {
+    background: #ef4444;
+}
+
+/* Profile Section */
+.profile-header {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--radius);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    margin: 0 auto 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-muted);
 }
