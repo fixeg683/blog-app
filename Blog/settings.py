@@ -1,43 +1,28 @@
 """
 Django settings for Blog project.
 
-Updated for deployment on Render.com with crash-prevention fixes.
+Updated for Vercel Deployment.
 """
 
 import os
 from pathlib import Path
-import dj_database_url  # Required for Render database connection
+import dj_database_url  # Required for external DB connection
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================================================================
-#  SECURITY SETTINGS
+#  SECURITY
 # ==============================================================================
 
-# Get SECRET_KEY from environment. 
-# Locally: Uses the fallback insecure key.
-# Render: Uses the SECRET_KEY variable you set in the Dashboard.
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-change-me')
+# Vercel provides 'VERCEL' env var. If present, we turn off Debug.
+DEBUG = 'VERCEL' not in os.environ
 
-# DEBUG Logic:
-# If the 'RENDER' environment variable exists, we turn DEBUG OFF.
-# Otherwise (locally), it defaults to True.
-DEBUG = 'RENDER' not in os.environ
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key')
 
-# ALLOWED_HOSTS:
-# Render provides the hostname in an environment variable automatically.
-ALLOWED_HOSTS = []
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# Add localhost for development and Render internal domains
-ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '.onrender.com'])
-
+ALLOWED_HOSTS = ['.vercel.app', '.now.sh', 'localhost', '127.0.0.1']
 
 # ==============================================================================
-#  APPLICATION DEFINITION
+#  APPS & MIDDLEWARE
 # ==============================================================================
 
 INSTALLED_APPS = [
@@ -47,19 +32,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Your Custom Apps (Ensure these match your actual folder names)
     'blog',
-    'home', 
+    'users',
+    'home',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    
-    # WhiteNoise is CRITICAL for Render. 
-    # It allows the web server to serve CSS/Images directly.
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Critical for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,73 +68,43 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Blog.wsgi.application'
 
-
 # ==============================================================================
-#  DATABASE CONFIGURATION
+#  DATABASE
 # ==============================================================================
 
-# 1. Default: Always start with a working SQLite config (for local use)
+# Vercel Read-Only File System Fix:
+# Vercel cannot use sqlite3. You must provide a DATABASE_URL env var 
+# (e.g. from Render Postgres, Neon, or Supabase).
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
-# 2. Production Override: If Render provides a DATABASE_URL, use it.
-# This prevents the "ImproperlyConfigured" error because we already have a default above.
-import dj_database_url
-
-# dj_database_url.config(conn_max_age=600) reads the DATABASE_URL env var automatically.
-# If the var is missing, it returns an empty dictionary {}, so nothing breaks.
-db_from_env = dj_database_url.config(conn_max_age=600)
-
-DATABASES['default'].update(db_from_env)
-
-
 # ==============================================================================
-#  PASSWORD VALIDATION
+#  STATIC FILES
 # ==============================================================================
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+STATICFILES_DIRS = []
+if (BASE_DIR / 'static').exists():
+    STATICFILES_DIRS.append(BASE_DIR / 'static')
+
+# Enable WhiteNoise for serving static files on Vercel
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ==============================================================================
-#  INTERNATIONALIZATION
+#  I18N & DEFAULT AUTO FIELD
 # ==============================================================================
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-
-
-# ==============================================================================
-#  STATIC FILES (CSS, JavaScript, Images)
-# ==============================================================================
-
-STATIC_URL = 'static/'
-
-# Where Docker/Render will collect files to (Must match your Dockerfile)
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# FIX: Prevent crash if 'static' folder is missing/empty
-# We check if the folder exists before adding it to Django's search list.
-STATICFILES_DIRS = []
-if (BASE_DIR / 'static').exists():
-    STATICFILES_DIRS.append(BASE_DIR / 'static')
-
-# Enable WhiteNoise compression and caching support
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-# ==============================================================================
-#  DEFAULT PRIMARY KEY FIELD TYPE
-# ==============================================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
