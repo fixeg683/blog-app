@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     
     # Your Custom Apps (Ensure these match your actual folder names)
     'blog',
-    'users',
     'home', 
 ]
 
