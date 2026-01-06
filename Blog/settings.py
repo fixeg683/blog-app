@@ -1,7 +1,7 @@
 """
 Django settings for Blog project.
 
-Updated for deployment on Render.com
+Updated for deployment on Render.com with crash-prevention fixes.
 """
 
 import os
@@ -32,7 +32,7 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# Add localhost for development
+# Add localhost for development and Render internal domains
 ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '.onrender.com'])
 
 
@@ -48,10 +48,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Your Custom Apps
+    # Your Custom Apps (Ensure these match your actual folder names)
     'blog',
     'users',
-    'home',  # Ensure all your apps are listed here
+    'home', 
 ]
 
 MIDDLEWARE = [
@@ -137,10 +137,11 @@ STATIC_URL = 'static/'
 # Where Docker/Render will collect files to (Must match your Dockerfile)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Where your source static files live
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+# FIX: Prevent crash if 'static' folder is missing/empty
+# We check if the folder exists before adding it to Django's search list.
+STATICFILES_DIRS = []
+if (BASE_DIR / 'static').exists():
+    STATICFILES_DIRS.append(BASE_DIR / 'static')
 
 # Enable WhiteNoise compression and caching support
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
