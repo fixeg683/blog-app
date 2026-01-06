@@ -1,38 +1,31 @@
-# Dockerfile
+# 1. Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
+# 2. Set environment variables
 # Prevent Python from writing pyc files to disc
-ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONDONTWRITEBYTECODE 1
 # Prevent Python from buffering stdout and stderr
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED 1
 
-# Install system dependencies (needed for Postgres client)
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a non-root user
-RUN useradd -m django_user
-
+# 3. Set the working directory in the container
 WORKDIR /app
 
-# Install dependencies
+# 4. Install dependencies
+# We copy requirements first to leverage Docker cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# 5. Copy the project code into the container
 COPY . .
 
-# Chown all the files to the app user
-RUN chown -R django_user:django_user /app
+# 6. FIX: Create the staticfiles directory and generate files
+# We pass a dummy SECRET_KEY here to prevent Django from crashing during the build
+RUN mkdir -p /app/staticfiles
+RUN SECRET_KEY=building_static_files python manage.py collectstatic --noinput
 
-# Switch to non-root user
-USER django_user
-
-# Expose the port
+# 7. Expose the port (Documenting that this container listens on 8000)
 EXPOSE 8000
 
-# Command to run the application (Adjust 'blog_project' to your actual project name)
-# We use gunicorn for production-grade serving, standard implementation requires installing it
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "blog_project.wsgi:application"]
+# 8. Define the default start command
+# This connects Gunicorn to your 'Blog' folder
+CMD ["gunicorn", "Blog.wsgi:application", "--bind", "0.0.0.0:8000"]
