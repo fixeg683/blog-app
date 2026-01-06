@@ -1,12 +1,12 @@
 """
 Django settings for Blog project.
 
-Updated for deployment on Vercel.
+Updated for deployment on Render.com
 """
 
 import os
 from pathlib import Path
-import dj_database_url  # Required for connecting to external databases (Render/Neon/Supabase)
+import dj_database_url  # Required for Render database connection
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,19 +16,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================================================================
 
 # Get SECRET_KEY from environment. 
-# On Vercel: Set this in the Project Settings > Environment Variables.
-# Locally: It falls back to the insecure key for development.
+# Locally: Uses the fallback insecure key.
+# Render: Uses the SECRET_KEY variable you set in the Dashboard.
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-change-me')
 
 # DEBUG Logic:
-# Vercel sets a 'VERCEL' environment variable. If found, DEBUG is False.
-# Locally, it defaults to True.
-DEBUG = 'VERCEL' not in os.environ
+# If the 'RENDER' environment variable exists, we turn DEBUG OFF.
+# Otherwise (locally), it defaults to True.
+DEBUG = 'RENDER' not in os.environ
 
 # ALLOWED_HOSTS:
-# 1. '.vercel.app' -> Allows any Vercel subdomain
-# 2. 'localhost'/'127.0.0.1' -> Allows local testing
-ALLOWED_HOSTS = ['.vercel.app', '.now.sh', 'localhost', '127.0.0.1']
+# Render provides the hostname in an environment variable automatically.
+ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Add localhost for development
+ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '.onrender.com'])
 
 
 # ==============================================================================
@@ -52,8 +57,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     
-    # WhiteNoise is CRITICAL for Vercel. 
-    # It allows Django to serve its own static files (CSS/JS) efficiently.
+    # WhiteNoise is CRITICAL for Render. 
+    # It allows the web server to serve CSS/Images directly.
     'whitenoise.middleware.WhiteNoiseMiddleware',
     
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -89,16 +94,14 @@ WSGI_APPLICATION = 'Blog.wsgi.application'
 #  DATABASE CONFIGURATION
 # ==============================================================================
 
-# Vercel has a Read-Only filesystem, so you CANNOT use SQLite there.
-# This logic checks for a DATABASE_URL. 
-# - If found (Vercel): Connects to Postgres.
-# - If not found (Local): Connects to SQLite.
+# This automatically detects if we are on Render (using DATABASE_URL)
+# or local (using db.sqlite3).
 
 DATABASES = {
     'default': dj_database_url.config(
+        # Use SQLite locally if DATABASE_URL is not found
         default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600,
-        ssl_require=False  # Set to True if your DB provider requires SSL (e.g., Heroku/Neon)
+        conn_max_age=600
     )
 }
 
@@ -131,16 +134,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Where collectstatic puts files for deployment
+# Where Docker/Render will collect files to (Must match your Dockerfile)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Where you keep your static files during development
+# Where your source static files live
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
 # Enable WhiteNoise compression and caching support
-# This makes your site load faster on Vercel
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
