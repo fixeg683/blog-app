@@ -1,24 +1,19 @@
 from django.urls import path
 from . import views
-from .views import UpdatePostView
 
 urlpatterns = [
-#     blogs
-    path("", views.blogs, name="blogs"),
-    path("blog/<str:slug>/", views.blogs_comments, name="blogs_comments"),
-    path("add_blogs/", views.add_blogs, name="add_blogs"),
-    path("edit_blog_post/<str:slug>/", UpdatePostView.as_view(), name="edit_blog_post"),
-    path("delete_blog_post/<str:slug>/", views.Delete_Blog_Post, name="delete_blog_post"),
-    path("search/", views.search, name="search"),
-
+    # The name='home' here is what {% url 'home' %} looks for
+    path('', views.home, name='home'),
     
-#     profile
-    path("profile/", views.Profile, name="profile"),
-    path("edit_profile/", views.edit_profile, name="edit_profile"),
-    path("user_profile/<int:myid>/", views.user_profile, name="user_profile"),
-    
-#    user authentication
-    path("register/", views.Register, name="register"),
-    path("login/", views.Login, name="login"),
-    path("logout/", views.Logout, name="logout"),
+    # Other patterns required by your templates
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('add_blog/', views.add_blog, name='add_blog'),
+    path('profile/', views.profile, name='profile'),
+    path('logout/', views.logout_view, name='logout'),
+    path('search/', views.search, name='search'),
+    path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
+    path('blog_update/<slug:slug>/', views.edit_blog_post, name='edit_blog_post'),
+    path('blog_delete/<slug:slug>/', views.delete_blog_post, name='delete_blog_post'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
 ]

@@ -1,0 +1,13 @@
+# k8s/postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: db  # <--- CRITICAL: This must match "HOST" in settings.py
+spec:
+  selector:
+    app: postgres # <--- This must match the label on your Postgres pod
+  ports:
+    - protocol: TCP
+      port: 5432      # Postgres standard port
+      targetPort: 5432
+  type: ClusterIP

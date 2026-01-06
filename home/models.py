@@ -1,44 +1,30 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.urls import reverse
-from django.utils.timezone import now
+from django.utils.text import slugify
+import uuid
 
-    
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
-    image = models.ImageField(upload_to="profile_pics", blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
-    phone_no = models.IntegerField(blank=True, null=True)
-    facebook = models.CharField(max_length=300, blank=True, null=True)
-    instagram = models.CharField(max_length=300, blank=True, null=True)
-    linkedin = models.CharField(max_length=300, blank=True, null=True)
-    
-    def __str__(self):
-        return str(self.user)
-
-class BlogPost(models.Model):
-    title=models.CharField(max_length=255)
-    author= models.ForeignKey(User, on_delete=models.CASCADE)
-    slug=models.CharField(max_length=130)
-    content=models.TextField()
-    image = models.ImageField(upload_to="profile_pics", blank=True, null=True)
-    dateTime=models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return str(self.author) +  " Blog Title: " + self.title
-    
-    def get_absolute_url(self):
-        return reverse('blogs')
-    
-    
-class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    blog = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
-    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)   
-    dateTime=models.DateTimeField(default=now)
+    is_verified = models.BooleanField(default=False)
+    token = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.user.username +  " Comment: " + self.content
-    
+        return self.user.username
 
+class BlogModel(models.Model):
+    title = models.CharField(max_length=1000)
+    content = models.TextField()
+    slug = models.SlugField(max_length=1000, null=True, blank=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='blog', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    upload_to = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)
+            self.slug = f"{base_slug}-{str(uuid.uuid4())[:8]}"
+        super(BlogModel, self).save(*args, **kwargs)

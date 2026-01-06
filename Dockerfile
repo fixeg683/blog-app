@@ -2,9 +2,9 @@
 FROM python:3.11-slim
 
 # Prevent Python from writing pyc files to disc
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 # Prevent Python from buffering stdout and stderr
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies (needed for Postgres client)
 RUN apt-get update && apt-get install -y \

@@ -1,18 +1,33 @@
 from django import forms
-from .models import Profile, BlogPost
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from .models import BlogModel, Profile
 
-class ProfileForm(forms.ModelForm):
+class BlogForm(forms.ModelForm):
+    class Meta:
+        model = BlogModel  # <--- Updated to match your actual model name
+        fields = ['title', 'content', 'image']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Title'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your story...'}),
+        }
+
+class RegisterForm(UserCreationForm):
+    # Adds email to the standard registration form
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+class UpdateUserForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+class UpdateProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ('phone_no', 'bio', 'facebook', 'instagram', 'linkedin', 'image', )
-     
-        
-class BlogPostForm(forms.ModelForm):
-    class Meta:
-        model = BlogPost
-        fields = ('title', 'slug', 'content', 'image')
-        widgets = {
-            'title': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Title of the Blog'}),
-            'slug': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Copy the title with no space and a hyphen in between'}),
-            'content': forms.Textarea(attrs={'class':'form-control', 'placeholder':'Content of the Blog'}),
-        }
+        fields = ['is_verified'] # Add other profile fields if you have them, e.g. avatar

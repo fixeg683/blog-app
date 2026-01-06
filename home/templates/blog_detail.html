@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 2rem;">
+    
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ post.title }}</h1>
+        <div style="color: var(--text-muted); font-size: 0.9rem;">
+            <span>By <strong>{{ post.user.username }}</strong></span>
+            <span style="margin: 0 10px;">•</span>
+            <span>{{ post.created_at|date:"F d, Y" }}</span>
+        </div>
+    </div>
+
+    {% if post.image %}
+    <div style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+        <img src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; height: auto; display: block;">
+    </div>
+    {% endif %}
+
+    <div style="font-size: 1.1rem; line-height: 1.8; color: var(--text-main); background: white; padding: 2rem; border-radius: 12px; border: 1px solid var(--border);">
+        {{ post.content|linebreaks }}
+    </div>
+
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <a href="{% url 'home' %}" style="text-decoration: none; color: var(--text-muted);">← Back to Home</a>
+
+        {% if request.user == post.user %}
+        <div style="display: flex; gap: 1rem;">
+            <a href="{% url 'edit_blog_post' post.slug %}" class="btn" style="background-color: var(--primary);">Edit</a>
+            <a href="{% url 'delete_blog_post' post.slug %}" class="btn-danger" style="padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; color: white;">Delete</a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
