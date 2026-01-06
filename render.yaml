@@ -2,12 +2,14 @@ databases:
   - name: blog-db
     databaseName: blogdb
     user: bloguser
-    plan: free  # Use the free tier
+    plan: free  # Note: Render free databases expire after 90 days
 
 services:
   - type: web
     name: blog-app
     env: python
+    plan: free  # <--- ADDED: Ensures you stay on the free tier
+    
     # Link to the database defined above
     envVars:
       - key: DATABASE_URL
@@ -17,12 +19,13 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
-        value: "4"
+        value: "2"  # <--- CHANGED: Reduced from 4 to 2 to prevent crashes on Free Tier
       - key: PYTHON_VERSION
-        value: 3.11.0 # Match your local version
+        value: "3.11.0" # <--- QUOTED: Best practice for version strings
     
     # The commands we defined earlier
     buildCommand: "./build.sh"
     
-    # Start Gunicorn (Replace 'Blog' with your actual project folder name)
+    # Start Gunicorn
+    # CRITICAL: Ensure your project folder is actually named 'Blog'
     startCommand: "gunicorn Blog.wsgi:application"
