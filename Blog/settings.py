@@ -93,16 +93,23 @@ WSGI_APPLICATION = 'Blog.wsgi.application'
 #  DATABASE CONFIGURATION
 # ==============================================================================
 
-# This automatically detects if we are on Render (using DATABASE_URL)
-# or local (using db.sqlite3).
-
+# 1. Default: Always start with a working SQLite config (for local use)
 DATABASES = {
-    'default': dj_database_url.config(
-        # Use SQLite locally if DATABASE_URL is not found
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# 2. Production Override: If Render provides a DATABASE_URL, use it.
+# This prevents the "ImproperlyConfigured" error because we already have a default above.
+import dj_database_url
+
+# dj_database_url.config(conn_max_age=600) reads the DATABASE_URL env var automatically.
+# If the var is missing, it returns an empty dictionary {}, so nothing breaks.
+db_from_env = dj_database_url.config(conn_max_age=600)
+
+DATABASES['default'].update(db_from_env)
 
 
 # ==============================================================================
