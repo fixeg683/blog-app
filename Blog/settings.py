@@ -72,17 +72,23 @@ WSGI_APPLICATION = 'Blog.wsgi.application'
 #  DATABASE
 # ==============================================================================
 
-# Vercel Read-Only File System Fix:
-# Vercel cannot use sqlite3. You must provide a DATABASE_URL env var 
-# (e.g. from Render Postgres, Neon, or Supabase).
-
+# 1. Start with a default SQLite setup.
+# This ensures 'collectstatic' works during the build even if the DB is missing.
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600,
-        ssl_require=False
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
+# 2. Check if a real database URL exists in the environment.
+# We explicitly check for None or empty strings to prevent the "No support for ''" crash.
+db_url = os.environ.get('DATABASE_URL')
+
+if db_url and db_url.strip():
+    # Only try to parse if the string is not empty
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(db_url, conn_max_age=600, ssl_require=False)
 
 # ==============================================================================
 #  STATIC FILES
