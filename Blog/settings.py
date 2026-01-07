@@ -73,8 +73,9 @@ WSGI_APPLICATION = 'Blog.wsgi.application'
 #  DATABASE (CRASH-PROOF FIX)
 # ==============================================================================
 
-# 1. Always start with a working SQLite default.
-# This ensures the build step (collectstatic) works even if the DB URL is broken.
+import dj_database_url
+
+# 1. Default to SQLite (Works for build process)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -82,16 +83,22 @@ DATABASES = {
     }
 }
 
-# 2. Safely check for the production database
-# We grab the variable, strip whitespace, and ONLY use it if it actually contains text.
-database_url = os.environ.get('DATABASE_URL')
-
-if database_url and database_url.strip():
-    DATABASES['default'] = dj_database_url.parse(
-        database_url,
-        conn_max_age=600,
-        ssl_require=False
-    )
+# 2. Try to load the Production Database
+# We wrap this in a TRY block so it NEVER crashes the build, 
+# even if the URL is empty, broken, or garbage.
+try:
+    database_url = os.environ.get('DATABASE_URL')
+    # Check if it looks like a real URL (longer than 10 chars)
+    if database_url and len(database_url) > 10:
+        prod_db = dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            ssl_require=False
+        )
+        DATABASES['default'] = prod_db
+except Exception as e:
+    # If anything goes wrong, just print a warning and keep using SQLite
+    print(f"WARNING: Could not load DATABASE_URL. Using SQLite. Error: {e}")
 
 # ==============================================================================
 #  STATIC FILES
