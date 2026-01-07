@@ -1,13 +1,14 @@
 """
 Django settings for Blog project.
 
-Updated for Vercel Deployment.
+Updated for Vercel Deployment (Crash-Proof Database Config).
 """
 
 import os
 from pathlib import Path
-import dj_database_url  # Required for external DB connection
+import dj_database_url
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================================================================
@@ -39,7 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Critical for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,11 +70,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Blog.wsgi.application'
 
 # ==============================================================================
-#  DATABASE
+#  DATABASE (CRASH-PROOF FIX)
 # ==============================================================================
 
-# 1. Start with a default SQLite setup.
-# This ensures 'collectstatic' works during the build even if the DB is missing.
+# 1. Always start with a working SQLite default.
+# This ensures the build step (collectstatic) works even if the DB URL is broken.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -81,14 +82,16 @@ DATABASES = {
     }
 }
 
-# 2. Check if a real database URL exists in the environment.
-# We explicitly check for None or empty strings to prevent the "No support for ''" crash.
-db_url = os.environ.get('DATABASE_URL')
+# 2. Safely check for the production database
+# We grab the variable, strip whitespace, and ONLY use it if it actually contains text.
+database_url = os.environ.get('DATABASE_URL')
 
-if db_url and db_url.strip():
-    # Only try to parse if the string is not empty
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.parse(db_url, conn_max_age=600, ssl_require=False)
+if database_url and database_url.strip():
+    DATABASES['default'] = dj_database_url.parse(
+        database_url,
+        conn_max_age=600,
+        ssl_require=False
+    )
 
 # ==============================================================================
 #  STATIC FILES
