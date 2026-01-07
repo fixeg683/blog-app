@@ -111,7 +111,7 @@ if (BASE_DIR / 'static').exists():
     STATICFILES_DIRS.append(BASE_DIR / 'static')
 
 # Enable WhiteNoise for serving static files on Vercel
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ==============================================================================
 #  I18N & DEFAULT AUTO FIELD
